@@ -1,0 +1,28 @@
+# Stage 1: Build the React/Vite app
+FROM node:latest AS nodework
+
+# Set the working directory
+WORKDIR /myapp
+
+# Copy package.json and install dependencies
+COPY package.json .
+RUN npm install
+
+# Copy application code and build
+COPY . .
+RUN npm run build
+
+# Stage 2: Serve the app with Nginx
+FROM nginx:alpine
+
+# Remove the default Nginx content
+RUN rm -rf /usr/share/nginx/html/*
+
+# Copy the build output from the previous stage to Nginx's directory
+COPY --from=nodework /myapp/dist /usr/share/nginx/html
+
+# Expose port 80
+EXPOSE 80
+
+# Start Nginx
+CMD [ "nginx", "-g", "daemon off;" ]
